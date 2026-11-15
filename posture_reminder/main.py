@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------------------
 #   author          : Kutay Coskuner
 #   ai-contributors : Claude Opus 5.5 (claude-opus-5-5)
-#   last update     : 2026-10-07
+#   last update     : 2026-11-16
 #   template        : 3.2.0
 #   disclaimer      : Provided as is, without warranty of any kind; use at your own risk.
 #                     Check outputs before relying on them.
@@ -16,7 +16,9 @@ As shipped: outlined text only, no box, centered above the bottom edge of every 
 Position, font, outline and an optional background box (color and opacity, which never
 fades the text) are settings. Clicking it or pressing Esc hides it early. A tray icon
 turns reminders off and on, shows one now, toggles the start at login (Windows) and
-quits; Ctrl+C in the terminal also stops the tool.
+quits; Ctrl+C in the terminal also stops the tool. Started at login (the Startup
+shortcut passes --at-login), reminders begin off unless login_active: the grey tray icon
+shows it's running, and tray > Active turns them on.
 
 1. Bare run prints this guide and exits (no-args-usage-guide).
 2. The first real run offers to create config.yaml from config.example.yaml
@@ -36,7 +38,8 @@ Inputs -> outputs: settings -> a reminder on every screen (or the primary one); 
 Run:
     python main.py --run                     remind every interval_minutes, with a tray icon;
                                              run at every login: start_with_windows: true
-                                             in config.yaml, or tray > Start with Windows
+                                             in config.yaml, or tray > Start with Windows;
+                                             at login it starts off: tray > Active
     python main.py --once                    flash once right now, to check the look
     python main.py --run --interval 30 --duration 8 --message "Stand up!"
     python main.py --once --primary-only     only on the primary screen, not on every one
@@ -80,7 +83,7 @@ HERE = Path(__file__).resolve().parent
 DEFAULTS = {"message": "Dik dur!", "interval_minutes": 8, "duration_seconds": 1,
             "count": 0, "start_blinks": 2, "tray": True,
             "tray_icon": "assets/icon-four_cubes.png",
-            "start_with_windows": False, "all_screens": True,
+            "start_with_windows": False, "login_active": False, "all_screens": True,
             "anchor": "bottom", "offset_x": 0, "offset_y": 160,
             "font_family": "Linux Libertine G", "font_size": 72, "font_bold": True,
             "font_italic": False, "text_color": "#ffffff", "outline_width": 2,
@@ -98,6 +101,8 @@ TRAY_NAME = "Posture reminder"
 # creates or deletes this one
 STARTUP_LINK = (Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows"
                 / "Start Menu" / "Programs" / "Startup" / f"{TRAY_NAME}.lnk")
+# what the shortcut passes; --at-login tells the run it was started by Windows
+STARTUP_ARGS = "main.py --run --at-login"
 
 # -----------------------------------------------------------------------------------------
 #                functions
@@ -128,7 +133,8 @@ def usage_summary() -> str:
     return (f"Current settings ({source}):\n"
             f"    every {s['interval_minutes']} min, shown {s['duration_seconds']} s, "
             f"{s['start_blinks']} start blinks, tray {'on' if s['tray'] else 'off'}, "
-            f"start with Windows {'on' if s['start_with_windows'] else 'off'}\n"
+            f"start with Windows {'on' if s['start_with_windows'] else 'off'} "
+            f"(reminders {'on' if s['login_active'] else 'off'} at login)\n"
             f"    {s['message']!r} at {s['anchor']} {s['offset_x']:+d}/{s['offset_y']:+d} px, "
             f"{s['font_family']} {s['font_size']} pt, outline {s['outline_width']} px, "
             f"box opacity {s['background_opacity']}")
@@ -162,6 +168,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
                              f"(now: {now['start_blinks']})")
     parser.add_argument("--no-tray", dest="tray", action="store_false", default=None,
                         help=f"no tray icon (stop with Ctrl+C) (now: tray {now['tray']})")
+    parser.add_argument("--login-active", dest="login_active",
+                        action=argparse.BooleanOptionalAction, default=None,
+                        help="reminders on right away when started at login; off = turn "
+                             f"them on with tray > Active (now: {now['login_active']})")
+    parser.add_argument("--at-login", action="store_true",
+                        help="started by the Startup shortcut: reminders follow "
+                             "login_active (set by the shortcut, not typed)")
     parser.add_argument("--primary-only", dest="all_screens", action="store_false",
                         default=None, help="show on the primary screen only, not on "
                                            f"every one (now: all_screens {now['all_screens']})")
@@ -347,8 +360,10 @@ def load_settings(args: argparse.Namespace) -> dict:
         loaded = yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
         settings.update(loaded)
     settings.update({k: v for k, v in vars(args).items()
-                     if v is not None and k not in ("run", "once", "list_fonts")})
+                     if v is not None
+                     and k not in ("run", "once", "list_fonts", "at_login")})
     settings["once"] = args.once
+    settings["at_login"] = args.at_login
     if args.once:
         settings["count"] = 1
     if settings["interval_minutes"] <= 0 or settings["duration_seconds"] <= 0:
@@ -612,9 +627,10 @@ def set_startup(enable: bool) -> None:
     """
     Creates or deletes the Startup-folder shortcut that runs this tool at login.
 
-    The shortcut runs this venv's pythonw.exe (no console window) with
-    `main.py --run` in this folder, so settings come from config.yaml. Windows only;
-    called from the tray menu, so the user's click is the go-ahead for the write.
+    The shortcut runs this venv's pythonw.exe (no console window) with STARTUP_ARGS
+    (`main.py --run --at-login`) in this folder, so settings come from config.yaml.
+    Windows only; called from the tray menu or by sync_startup to match
+    start_with_windows, which the user set.
     """
     if not enable:
         STARTUP_LINK.unlink(missing_ok=True)
@@ -622,10 +638,11 @@ def set_startup(enable: bool) -> None:
         return
     pythonw = Path(sys.executable).with_name("pythonw.exe")
     script = ("$l = (New-Object -ComObject WScript.Shell).CreateShortcut($env:LINK); "
-              "$l.TargetPath = $env:TARGET; $l.Arguments = 'main.py --run'; "
+              "$l.TargetPath = $env:TARGET; $l.Arguments = $env:ARGS; "
               "$l.WorkingDirectory = $env:FOLDER; $l.Save()")
     # paths go in as environment variables, so quotes or spaces in them can't break it
-    env = dict(os.environ, LINK=str(STARTUP_LINK), TARGET=str(pythonw), FOLDER=str(HERE))
+    env = dict(os.environ, LINK=str(STARTUP_LINK), TARGET=str(pythonw), FOLDER=str(HERE),
+               ARGS=STARTUP_ARGS)
     result = subprocess.run(["powershell", "-NoProfile", "-Command", script], env=env,
                             capture_output=True, text=True, check=False,
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
@@ -635,13 +652,24 @@ def set_startup(enable: bool) -> None:
         print(f"start at login: on ({STARTUP_LINK})")
 
 
+def startup_arguments() -> str | None:
+    """The arguments the existing Startup shortcut passes, or None if unreadable."""
+    script = "(New-Object -ComObject WScript.Shell).CreateShortcut($env:LINK).Arguments"
+    result = subprocess.run(["powershell", "-NoProfile", "-Command", script],
+                            env=dict(os.environ, LINK=str(STARTUP_LINK)),
+                            capture_output=True, text=True, check=False,
+                            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
 def sync_startup(enabled: bool) -> None:
     """
-    Makes the Startup shortcut match start_with_windows: creates or removes it.
+    Makes the Startup shortcut match start_with_windows: creates, updates or removes it.
 
     config.yaml is the source of truth, so a run started any way (terminal, login)
-    brings the shortcut in line with it. Not Windows: a true value is reported, not
-    silently ignored.
+    brings the shortcut in line with it. A shortcut made by an older version (other
+    arguments, e.g. without --at-login) is recreated, so its login start behaves like
+    a new one. Not Windows: a true value is reported, not silently ignored.
     """
     if sys.platform != "win32":
         if enabled:
@@ -649,6 +677,9 @@ def sync_startup(enabled: bool) -> None:
         return
     if enabled != STARTUP_LINK.exists():
         set_startup(enabled)
+    elif enabled and startup_arguments() != STARTUP_ARGS:
+        print(f"start at login: updating the shortcut to pass {STARTUP_ARGS!r}")
+        set_startup(True)
 
 
 def save_setting(key: str, value: bool | float | str) -> bool:
@@ -725,15 +756,23 @@ def run(settings: dict) -> None:
     the single reminder is shown right away instead of after the first interval.
     Otherwise the text first blinks start_blinks times, so a start at login is visibly
     working (the blinks don't count as reminders), and with `tray` a tray icon turns
-    reminders off and on, shows one now, or toggles the start at login.
+    reminders off and on, shows one now, or toggles the start at login. Started at
+    login (--at-login) with login_active off, reminders begin off and without blinks:
+    the grey tray icon shows it's running, tray > Active starts them. Without a tray
+    there'd be no way to turn them on, so they start on.
     """
     interval_ms = round(settings["interval_minutes"] * 60_000)
     duration_ms = round(settings["duration_seconds"] * 1000)
     count = settings["count"]
     root, reminder = build_reminder(settings)
     shown = 0
+    start_off = (settings["at_login"] and not settings["login_active"]
+                 and not settings["once"])
+    if start_off and not settings["tray"]:
+        print("at login: reminders on, since without a tray they couldn't be turned on")
+        start_off = False
     # Shared with the tray thread, which only reads it; commands go the other way
-    state = {"active": True, "job": None, "next": datetime.now()}
+    state = {"active": not start_off, "job": None, "next": datetime.now()}
     commands: queue.Queue[str] = queue.Queue()
     tray, images = None, {}
 
@@ -762,7 +801,7 @@ def run(settings: dict) -> None:
         if tray:
             tray.icon = images[state["active"]]
             tray.title = (f"{TRAY_NAME}: next at {state['next']:%H:%M}" if state["active"]
-                          else f"{TRAY_NAME}: off")
+                          else f"{TRAY_NAME}: off, tray > Active to start")
             tray.update_menu()
 
     def handle(command: str) -> None:
@@ -807,8 +846,11 @@ def run(settings: dict) -> None:
               + (f" (or after {count} reminder{'s' if count > 1 else ''})"
                  if count else ""))
         sync_startup(settings["start_with_windows"])
-        blink(settings["start_blinks"])
-        next_reminder(interval_ms)
+        if start_off:
+            print("at login: reminders off until tray > Active (login_active: false)")
+        else:
+            blink(settings["start_blinks"])
+            next_reminder(interval_ms)
         if settings["tray"]:
             tray, images = start_tray(commands, state, settings["tray_icon"])
             update_tray()

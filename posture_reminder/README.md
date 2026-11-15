@@ -75,9 +75,12 @@ python main.py --help           # All flags, with the values your config.yaml se
     - turn it on either way; both stay in sync
         - `start_with_windows: true` in `config.yaml`, then run `python main.py --run` once
         - or run `python main.py --run`, right-click the tray icon, tick **Start with Windows** (saves `start_with_windows: true` in `config.yaml`)
-    - every run makes the shortcut match the setting: creates it when `true` and missing, removes it when `false`
-    - the shortcut is `Posture reminder.lnk` in your Startup folder (Win+R, `shell:startup`); it runs this folder's `.venv\Scripts\pythonw.exe main.py --run`, so no console window, settings from `config.yaml`
-    - at login the text blinks (`start_blinks`) and the tray icon appears; control it from the tray from then on
+    - every run makes the shortcut match the setting: creates it when `true` and missing, removes it when `false`, and recreates one made by an older version (other arguments)
+    - the shortcut is `Posture reminder.lnk` in your Startup folder (Win+R, `shell:startup`); it runs this folder's `.venv\Scripts\pythonw.exe main.py --run --at-login`, so no console window, settings from `config.yaml`
+    - at login the reminders start **off** (`login_active: false`): only the grey tray icon appears, no blinks; right-click it and tick **Active** to start them (one blink, then every `interval_minutes`)
+        - `login_active: true`: on right away at login, with the start blinks, as when started from a terminal
+        - with `tray: false` they start on anyway, since there'd be no way to turn them on
+    - started from a terminal (`python main.py --run`), reminders are always on
     - to stop starting at login: untick **Start with Windows**, or set `start_with_windows: false` (deleting the shortcut by hand doesn't last while the setting is `true`: the next run recreates it)
     - moved the folder or recreated `.venv`? untick and tick again, so the shortcut points at the new place
     - without a console there's no one to answer the config prompt: it keeps `config.yaml` as it is and asks on the next run from a terminal
@@ -102,6 +105,7 @@ python main.py --help           # All flags, with the values your config.yaml se
 | `tray` | `--no-tray` | `true` | tray icon with Active / Show now / Start with Windows / Quit; needs `pystray` and `Pillow` (in `requirements.txt`) |
 | `tray_icon` | — | `assets/icon-four_cubes.png` | tray icon image: a `.png` / `.ico` / `.jpg` path (not `.svg`: Pillow can't read it), absolute or relative to this folder; `""` = built-in drawing (white figure in a green disc); when off, a grey version of it; a missing or unreadable file warns and uses the built-in one; square images look best |
 | `start_with_windows` | — | `false` | run at every login (Windows); each run creates or removes the Startup shortcut to match; the tray item saves its choice here |
+| `login_active` | `--login-active` / `--no-login-active` | `false` | started at login: `false` = reminders off until tray > **Active** (grey icon shows it's running), `true` = on right away; a terminal start is always on |
 | `all_screens` | `--primary-only` | `true` | show the reminder on every screen, same anchor and offset on each (Windows); `false` = primary screen only; on macOS / Linux always the primary screen |
 | **Position** | | | |
 | `anchor` | `--anchor` | `bottom` | `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`: the screen point the text box's matching point sits on |

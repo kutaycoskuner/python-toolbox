@@ -8,7 +8,7 @@
 
 <p align="center">
     <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" />
-    <img alt="Project Version" src="https://img.shields.io/badge/Version-0.40.0-blue" />
+    <img alt="Project Version" src="https://img.shields.io/badge/Version-0.41.0-blue" />
     <img alt="Project Start" src="https://img.shields.io/badge/project_start-17_Mar_2024-blue" />
     <img alt="Last Update" src="https://img.shields.io/github/last-commit/kutaycoskuner/python-toolbox" />
 </p>
@@ -79,6 +79,7 @@ source .venv/bin/activate
 
 # 5. Install the tool's dependencies
 pip install -r requirements.txt
+
 
 # 6. Create your .env from the example; it holds secrets only (API keys, tokens) and may stay empty.
 #    Paths and other settings go in the tool's config.yaml, offered on the first run.

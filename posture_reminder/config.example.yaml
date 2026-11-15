@@ -14,7 +14,9 @@ tray_icon: assets/icon-four_cubes.png  # .png/.ico/.jpg path (absolute, or relat
 start_with_windows: false     # true = run at every login (Windows); each run creates or
                               # removes the Startup shortcut to match; the tray item saves
                               # its choice here
-all_screens: true             # true = show on every screen (Windows); false = primary
+login_active: false           # started at login: false = reminders off until tray > Active
+                              # (grey icon shows it's running); true = on right away
+all_screens: true            # true = show on every screen (Windows); false = primary
                               # screen only (also: --primary-only)
 
 # Position on each screen: an anchor, then the distance from it
