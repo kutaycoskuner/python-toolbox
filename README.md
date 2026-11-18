@@ -8,7 +8,7 @@
 
 <p align="center">
     <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" />
-    <img alt="Project Version" src="https://img.shields.io/badge/Version-0.41.0-blue" />
+    <img alt="Project Version" src="https://img.shields.io/badge/Version-0.42.0-blue" />
     <img alt="Project Start" src="https://img.shields.io/badge/project_start-17_Mar_2024-blue" />
     <img alt="Last Update" src="https://img.shields.io/github/last-commit/kutaycoskuner/python-toolbox" />
 </p>
@@ -29,6 +29,8 @@
         - [id_name_mapper/README.md](id_name_mapper/README.md): [Folders](id_name_mapper/README.md#folders) · [Usage](id_name_mapper/README.md#usage) · [Settings](id_name_mapper/README.md#settings) · [Setup](id_name_mapper/README.md#setup-python-environment)
     - [Image Resizer](#image-resizer): resize every image in a folder to one size
         - [image_resizer/README.md](image_resizer/README.md): [Folders](image_resizer/README.md#folders) · [Usage](image_resizer/README.md#usage) · [Settings](image_resizer/README.md#settings) · [Setup](image_resizer/README.md#setup-python-environment)
+    - [Map Icon Generator](#map-icon-generator): labelled map-marker icons (PNG) from a YAML list, in several sizes
+        - [map_icon_generator/README.md](map_icon_generator/README.md): [Folders](map_icon_generator/README.md#folders) · [Usage](map_icon_generator/README.md#usage) · [Settings](map_icon_generator/README.md#settings) · [Setup](map_icon_generator/README.md#setup-python-environment)
     - [Markdown Tools](#markdown-tools): front matter migrator, PDF-text formatter, time-log parser
         - [markdown_frontmatter_migrator/README.md](markdown_frontmatter_migrator/README.md): [Folders](markdown_frontmatter_migrator/README.md#folders) · [Usage](markdown_frontmatter_migrator/README.md#usage) · [Settings](markdown_frontmatter_migrator/README.md#settings) · [Setup](markdown_frontmatter_migrator/README.md#setup-python-environment)
         - [markdown_formatter/README.md](markdown_formatter/README.md): [Folders](markdown_formatter/README.md#folders) · [Usage](markdown_formatter/README.md#usage) · [Settings](markdown_formatter/README.md#settings) · [Setup](markdown_formatter/README.md#setup-python-environment)
@@ -133,6 +135,12 @@ Resizes every image in a folder to one fixed size (default 1024×1024, set in `c
 - **Use case**: Preparing large texture sets for game development or 3D projects.
 - **Folder**: [image_resizer/](image_resizer/README.md)
 - **Last update**: `2026-10-04`
+
+### Map Icon Generator
+Draws small labelled map-marker icons (PNG) from a YAML list: an SVG shape in the middle (diamond, circle, shield, or your own) in your colours, and a short label over it, letters on top and the number under them (`A12` → A over 12), white with a dark outline; one text size for the whole list. Sizes (32, 48 ...), file naming (`{name}`, `{size}`, `{list}`, case, separator), background and text colours per line, outline and font are set in `config.yaml`, with flags, or per icon.
+- **Use case**: Making a consistent set of numbered or labelled markers for a map, one PNG per marker.
+- **Folder**: [map_icon_generator/](map_icon_generator/README.md)
+- **Last update**: `2026-11-18`
 
 ### Markdown Tools
 Tools to automate and format Markdown documents.

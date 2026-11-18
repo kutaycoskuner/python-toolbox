@@ -1,0 +1,10 @@
+<!-- Icon background: a
+     thin diamond outline and a solid inner diamond (68 % of its size), the gap between them
+     left transparent, so the map shows through. Each piece has a dark edge, so it stands out
+     on any ground: the outline is drawn wide in {edge} first, then in {colour} on top; the
+     inner diamond gets an {edge} border. Filled in per icon by main.py. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <polygon points="16,3 29,16 16,29 3,16" fill="none" stroke="{edge}" stroke-width="3.4"/>
+  <polygon points="16,3 29,16 16,29 3,16" fill="none" stroke="{colour}" stroke-width="1.5"/>
+  <polygon points="16,7.6 24.4,16 16,24.4 7.6,16" fill="{colour}" stroke="{edge}" stroke-width="1.1"/>
+</svg>

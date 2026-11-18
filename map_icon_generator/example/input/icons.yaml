@@ -1,0 +1,22 @@
+# Icons to make: one PNG per icon and size, named by file_name in the config (as shipped:
+# the text in lower case, spaces as -). Every form an entry can take:
+icons:
+  # a text: letters on top, the number under them (A over 12)
+  - A1
+  - { text: B12, note: "a note is only shown in the run's list" }
+
+  # one icon per number
+  - { text: "P{n}", numbers: [3, 4] }
+
+  # the widest label sets the text size for the whole list
+  - { text: C104a }
+
+  # the two lines set by hand, the upper one in its own colour
+  - { top: N, bottom: "07", top_colour: "#ffd54a" }
+
+  # its own background and colours, and its own file name
+  - { text: Home, file: home-blue, shape: shapes/circle.svg, fill: "#3d6aa8", inner: "#a9c4ea" }
+  - { text: S7, shape: shapes/shield.svg, colour: "#2e7d32", fill: "#e8f5e9" }
+
+  # no background, red outline
+  - { text: X9, shape: "", text_stroke: "#b71c1c" }

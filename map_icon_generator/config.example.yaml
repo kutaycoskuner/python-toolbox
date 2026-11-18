@@ -1,0 +1,61 @@
+# Committed defaults. The first real run offers to copy this file to config.yaml
+# (gitignored); edit config.yaml, not this file. Personal paths go only in config.yaml.
+# As shipped it draws the bundled example lists. CLI flags override these values.
+#
+# This tool needs no secrets, so there is no .env: everything is set here.
+# Colours: any Pillow colour, a name ("white") or "#rrggbb". An icon in the list may set
+# its own colour, edge, fill, inner, text_colour, top_colour, bottom_colour, text_stroke.
+
+# --- Input and output -------------------------------------------------------------------
+# Paths: what you type decides absolute vs. relative; relative_to only matters for
+# relative paths. Examples:
+#   input: C:/Users/me/icons.yaml   -> exactly that file (absolute; relative_to is ignored)
+#   input: example/input            -> <this tool's folder>/example/input (relative_to: tool)
+#   input: icons                    -> <folder you run the command in>/icons (relative_to: cwd)
+relative_to: tool                   # base for relative paths: "tool" (default) or "cwd"
+input: example/input                # an icon list (.yaml), or a folder: every .yaml in it
+output: example/output              # folder for the PNGs
+dry_run: false                      # true = list what would be made, write nothing
+yes: false                          # true = replace existing PNGs without asking
+
+# --- Sizes and file names ---------------------------------------------------------------
+sizes: [32]                         # PNG sizes in px, each icon drawn at each: [32, 48, 64]
+# The PNG's name, ".png" added. Placeholders: {name} = the entry's file, or its text;
+# {text} = its text; {size} = the size in px; {list} = the list file's name.
+# A "/" makes subfolders. With several sizes, {size} must be in it. Examples:
+#   "{name}"                 -> a12.png
+#   "{size}/{name}"          -> 32/a12.png, 48/a12.png
+#   "{name}-{size}"          -> a12-32.png, a12-48.png
+#   "{list}/{name}@{size}"   -> icons/a12@32.png
+file_name: "{name}"
+name_case: lower                    # lower, upper, or keep (as written in the list)
+name_separator: "-"                 # replaces spaces in names ("Home Blue" -> home-blue)
+
+# --- Background: the shape behind the text ----------------------------------------------
+shape: shapes/diamond.svg           # SVG in shapes/: diamond.svg, circle.svg, shield.svg, or
+                                    # your own; "" = no background
+art: 0.7                            # the shape's share of the PNG (0.7 = 22 of 32 px), the
+                                    # rest stays clear: a map draws an icon at its pixel size
+colour: "#6a35b5"                   # the shape's main colour {colour}: outline and inner
+                                    # diamond (purple)
+fill: "#fcfbf8"                     # the shape's {fill}, where it has one (circle, shield)
+inner: "#c9b5e3"                    # the shape's {inner} line, where it has one (circle, shield)
+edge: "#120d09"                     # the dark edge around each piece {edge}, so it stands
+                                    # out on any ground
+rough: 0.5                          # chips in the shape's straight edges, how deep (viewBox
+                                    # units); 0 = clean edges
+
+# --- Text -------------------------------------------------------------------------------
+# A label is split into an upper and a lower line: letters on top, the number under them
+# (A12 -> A over 12). An entry's own top / bottom set the two lines by hand.
+stack: true                         # false = the text on one line
+text_colour: "#ffffff"              # both lines (white)
+top_colour: ""                      # the upper line; "" = text_colour
+bottom_colour: ""                   # the lower line; "" = text_colour
+text_stroke: "#120d09"              # the outline around the letters (near black); "" = none
+text_stroke_width: 0                # outline thickness in px; 0 = size / 24, at least 1.4 px
+font: ""                            # a .ttf/.otf file; "" = Pillow's built-in font
+font_size: 0                        # px at 32 px, scaled for other sizes; 0 = fitted to the
+                                    # shape; one size for the whole list (the widest fits)
+text_weight: 0.4                    # px added to the letters' weight; 0 = the font's own
+letter_spacing: 1                   # px between letters, so each stands on its own
